@@ -18,6 +18,9 @@ export const WEBROOT = process.env.WEBROOT ?? "";
 
 export const LANGUAGE = process.env.LANGUAGE?.toLowerCase() || "en";
 
+/** Default UI language when no cookie / Accept-Language match (e.g. pt-BR). */
+export const UI_LANGUAGE = process.env.UI_LANGUAGE || "en";
+
 export const MAX_CONVERT_PROCESS =
   process.env.MAX_CONVERT_PROCESS && Number(process.env.MAX_CONVERT_PROCESS) > 0
     ? Number(process.env.MAX_CONVERT_PROCESS)

@@ -7,11 +7,13 @@ import sanitize from "sanitize-filename";
 import { uploadsDir } from "..";
 import db from "../db/db";
 import { WEBROOT } from "../helpers/env";
+import { localeFromRequest, t as i18n } from "../helpers/i18n";
 import { userService } from "./user";
 
 export const deleteFile = new Elysia().use(userService).post(
   "/delete",
-  async ({ body, redirect, set, cookie: { jobId }, user }) => {
+  async ({ body, redirect, set, cookie: { jobId }, user, request }) => {
+    const locale = localeFromRequest(request);
     if (!jobId?.value) {
       return redirect(`${WEBROOT}/`, 302);
     }
@@ -34,13 +36,13 @@ export const deleteFile = new Elysia().use(userService).post(
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code === "ENOENT") {
         set.status = 404;
-        return { message: "File not found." };
+        return { message: i18n("api.fileNotFound", undefined, locale) };
       }
       throw e;
     }
 
     return {
-      message: "File deleted successfully.",
+      message: i18n("api.fileDeleted", undefined, locale),
     };
   },
   { body: t.Object({ filename: t.String() }), auth: true },

@@ -1,11 +1,14 @@
 import Elysia, { t } from "elysia";
 
 import { getPossibleTargets, parseFileName } from "../converters/main";
+import { localeFromRequest, t as tr } from "../helpers/i18n";
 import { userService } from "./user";
 
 export const chooseConverter = new Elysia().use(userService).post(
   "/conversions",
-  ({ body }) => {
+  ({ body, request }) => {
+    const locale = localeFromRequest(request);
+    const label = tr("conversion.convertTo", undefined, locale);
     // prefer the file name so compound extensions like "nii.gz" resolve correctly,
     // but fall back to fileType when the name has no parseable extension
     const fileType = (body.fileName ? parseFileName(body.fileName).filetype : "") || body.fileType;
@@ -50,9 +53,9 @@ export const chooseConverter = new Elysia().use(userService).post(
           ))}
         </article>
 
-        <select name="convert_to" aria-label="Convert to" required hidden>
+        <select name="convert_to" aria-label={label} required hidden>
           <option selected disabled value="">
-            Convert to
+            {label}
           </option>
           {Object.entries(possibleTargets).map(([converter, targets]) => (
             <optgroup label={converter}>

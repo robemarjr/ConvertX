@@ -6,6 +6,7 @@ import { outputDir, uploadsDir } from "..";
 import db from "../db/db";
 import { Jobs } from "../db/types";
 import { WEBROOT } from "../helpers/env";
+import { localeFromRequest, t as i18n } from "../helpers/i18n";
 import { userService } from "./user";
 
 export const deleteJob = new Elysia()
@@ -44,12 +45,16 @@ export const deleteJob = new Elysia()
   )
   .post(
     "/delete-multiple",
-    async ({ body, user, set }) => {
+    async ({ body, user, set, request }) => {
+      const locale = localeFromRequest(request);
       const { jobIds } = body;
 
       if (!Array.isArray(jobIds) || jobIds.length === 0) {
         set.status = 400;
-        return { success: false, message: "Invalid job IDs provided" };
+        return {
+          success: false,
+          message: i18n("api.invalidJobIds", undefined, locale),
+        };
       }
 
       const results = {
@@ -68,7 +73,7 @@ export const deleteJob = new Elysia()
           if (!job) {
             results.failed.push({
               jobId,
-              error: "Job not found or unauthorized",
+              error: i18n("api.jobNotFoundOrUnauthorized", undefined, locale),
             });
             continue;
           }

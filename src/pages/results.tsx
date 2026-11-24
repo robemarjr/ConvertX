@@ -6,6 +6,7 @@ import db from "../db/db";
 import { Filename, Jobs } from "../db/types";
 import { buildDownloadUrl } from "../helpers/buildDownloadUrl";
 import { ALLOW_UNAUTHENTICATED, BRANDING, WEBROOT } from "../helpers/env";
+import { displayStatus, type Locale, localeFromRequest, t } from "../helpers/i18n";
 import { DeleteIcon } from "../icons/delete";
 import { DownloadIcon } from "../icons/download";
 import { EyeIcon } from "../icons/eye";
@@ -15,11 +16,14 @@ function ResultsArticle({
   job,
   files,
   outputPath,
+  locale,
 }: {
   job: Jobs;
   files: Filename[];
   outputPath: string;
+  locale: Locale;
 }) {
+  const tr = (key: string) => t(key, undefined, locale);
   const isCompleted =
     job.status === "completed" || (job.status !== "pending" && files.length >= job.num_files);
   const progressMax = Math.max(job.num_files, files.length);
@@ -29,7 +33,7 @@ function ResultsArticle({
   return (
     <article class="article">
       <div class="mb-4 flex items-center justify-between">
-        <h1 class="text-xl">Results</h1>
+        <h1 class="text-xl">{tr("history.title")}</h1>
         <div class="flex flex-row gap-4">
           <form action={`${WEBROOT}/delete/${job.id}`} method="POST">
             <button
@@ -38,7 +42,7 @@ function ResultsArticle({
               class="flex btn-secondary flex-row gap-2 text-contrast"
               {...pendingAttrs}
             >
-              <DeleteIcon /> <p>Delete</p>
+              <DeleteIcon /> <p>{tr("history.delete")}</p>
             </button>
           </form>
           <a
@@ -48,10 +52,10 @@ function ResultsArticle({
             class="flex btn-primary flex-row gap-2 text-contrast"
             {...pendingAttrs}
           >
-            <DownloadIcon /> <p>Tar</p>
+            <DownloadIcon /> <p>{tr("results.downloadTar")}</p>
           </a>
           <button class="flex btn-primary flex-row gap-2 text-contrast" data-action="download-all">
-            <DownloadIcon /> <p>All</p>
+            <DownloadIcon /> <p>{tr("results.downloadAll")}</p>
           </button>
         </div>
       </div>
@@ -82,7 +86,7 @@ function ResultsArticle({
                 sm:px-4
               `}
             >
-              Converted File Name
+              {tr("results.convertedFileName")}
             </th>
             <th
               class={`
@@ -90,7 +94,7 @@ function ResultsArticle({
                 sm:px-4
               `}
             >
-              Status
+              {tr("common.status")}
             </th>
             <th
               class={`
@@ -98,7 +102,7 @@ function ResultsArticle({
                 sm:px-4
               `}
             >
-              Actions
+              {tr("common.actions")}
             </th>
           </tr>
         </thead>
@@ -113,10 +117,10 @@ function ResultsArticle({
                 <td safe class="max-w-[20vw] truncate">
                   {file.output_file_name}
                 </td>
-                <td safe>{file.status}</td>
+                <td safe>{displayStatus(file.status, locale)}</td>
                 <td class="flex flex-row gap-4">
                   {conversionFailed ? (
-                    <span class="text-neutral-500">Unavailable</span>
+                    <span class="text-neutral-500">{tr("results.unavailable")}</span>
                   ) : (
                     <>
                       <a
@@ -154,7 +158,10 @@ export const results = new Elysia()
   .use(userService)
   .get(
     "/results/:jobId",
-    async ({ params, set, cookie: { job_id }, user }) => {
+    async ({ params, set, cookie: { job_id }, user, request }) => {
+      const locale = localeFromRequest(request);
+      const tr = (key: string) => t(key, undefined, locale);
+
       if (job_id?.value) {
         // Clear the job_id cookie since we are viewing the results
         job_id.remove();
@@ -168,7 +175,7 @@ export const results = new Elysia()
       if (!job) {
         set.status = 404;
         return {
-          message: "Job not found.",
+          message: tr("error.jobNotFound"),
         };
       }
 
@@ -180,13 +187,18 @@ export const results = new Elysia()
         .all(params.jobId);
 
       return (
-        <BaseHtml webroot={WEBROOT} title="ConvertX | Result">
+        <BaseHtml
+          webroot={WEBROOT}
+          title={`${BRANDING} | ${tr("results.title")}`}
+          locale={locale}
+        >
           <>
             <Header
               webroot={WEBROOT}
               allowUnauthenticated={ALLOW_UNAUTHENTICATED}
               loggedIn
               branding={BRANDING}
+              locale={locale}
             />
             <main
               class={`
@@ -194,7 +206,7 @@ export const results = new Elysia()
                 sm:px-4
               `}
             >
-              <ResultsArticle job={job} files={files} outputPath={outputPath} />
+              <ResultsArticle job={job} files={files} outputPath={outputPath} locale={locale} />
             </main>
             <script src={`${WEBROOT}/results.js`} defer />
           </>
@@ -205,7 +217,9 @@ export const results = new Elysia()
   )
   .post(
     "/progress/:jobId",
-    async ({ set, params, cookie: { job_id }, user }) => {
+    async ({ set, params, cookie: { job_id }, user, request }) => {
+      const locale = localeFromRequest(request);
+
       if (job_id?.value) {
         // Clear the job_id cookie since we are viewing the results
         job_id.remove();
@@ -219,7 +233,7 @@ export const results = new Elysia()
       if (!job) {
         set.status = 404;
         return {
-          message: "Job not found.",
+          message: t("error.jobNotFound", undefined, locale),
         };
       }
 
@@ -230,7 +244,7 @@ export const results = new Elysia()
         .as(Filename)
         .all(params.jobId);
 
-      return <ResultsArticle job={job} files={files} outputPath={outputPath} />;
+      return <ResultsArticle job={job} files={files} outputPath={outputPath} locale={locale} />;
     },
     { auth: true },
   );

@@ -1,3 +1,5 @@
+import { type Locale, t } from "../helpers/i18n";
+
 export const Header = ({
   loggedIn,
   accountRegistration,
@@ -5,6 +7,7 @@ export const Header = ({
   hideHistory,
   webroot = "",
   branding = "ConvertX",
+  locale = "en",
 }: {
   loggedIn?: boolean;
   accountRegistration?: boolean;
@@ -12,11 +15,14 @@ export const Header = ({
   hideHistory?: boolean;
   webroot?: string;
   branding?: string;
+  locale?: Locale;
 }) => {
+  const tr = (key: string) => t(key, undefined, locale);
+
   let rightNav: JSX.Element;
   if (loggedIn) {
     rightNav = (
-      <ul class="flex gap-4">
+      <ul class="flex flex-wrap items-center gap-4">
         {!hideHistory && (
           <li>
             <a
@@ -26,7 +32,7 @@ export const Header = ({
               `}
               href={`${webroot}/history`}
             >
-              History
+              {tr("nav.history")}
             </a>
           </li>
         )}
@@ -39,7 +45,7 @@ export const Header = ({
               `}
               href={`${webroot}/account`}
             >
-              Account
+              {tr("nav.account")}
             </a>
           </li>
         ) : null}
@@ -52,15 +58,18 @@ export const Header = ({
               `}
               href={`${webroot}/logoff`}
             >
-              Logout
+              {tr("nav.logout")}
             </a>
           </li>
         ) : null}
+        <li>
+          <LanguageSelect webroot={webroot} locale={locale} />
+        </li>
       </ul>
     );
   } else {
     rightNav = (
-      <ul class="flex gap-4">
+      <ul class="flex flex-wrap items-center gap-4">
         <li>
           <a
             class={`
@@ -69,7 +78,7 @@ export const Header = ({
             `}
             href={`${webroot}/login`}
           >
-            Login
+            {tr("nav.login")}
           </a>
         </li>
         {accountRegistration ? (
@@ -81,10 +90,13 @@ export const Header = ({
               `}
               href={`${webroot}/register`}
             >
-              Register
+              {tr("nav.register")}
             </a>
           </li>
         ) : null}
+        <li>
+          <LanguageSelect webroot={webroot} locale={locale} />
+        </li>
       </ul>
     );
   }
@@ -106,3 +118,26 @@ export const Header = ({
     </header>
   );
 };
+
+function LanguageSelect({ webroot, locale }: { webroot: string; locale: Locale }) {
+  return (
+    <form method="get" action={`${webroot}/locale`} class="flex items-center gap-2">
+      <label for="ui-language" class="sr-only">
+        {t("common.language", undefined, locale)}
+      </label>
+      <select
+        id="ui-language"
+        name="lang"
+        class="rounded-sm bg-neutral-800 px-2 py-1 text-sm text-neutral-200"
+        onchange="this.form.submit()"
+      >
+        <option value="en" selected={locale === "en"}>
+          English
+        </option>
+        <option value="pt-BR" selected={locale === "pt-BR"}>
+          Português (Brasil)
+        </option>
+      </select>
+    </form>
+  );
+}

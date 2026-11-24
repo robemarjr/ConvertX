@@ -1,0 +1,7 @@
+# Exemplo de override a ajustar ao compose.yaml do fork.
+services:
+  convertx:
+    environment:
+      - LANGUAGE=pt-BR       # formatação de datas, já existente no upstream
+      - UI_LANGUAGE=pt-BR    # somente após implementação no fork
+      - MAX_CONVERT_PROCESS=2

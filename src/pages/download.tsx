@@ -8,6 +8,7 @@ import sanitize from "sanitize-filename";
 import { outputDir } from "..";
 import db from "../db/db";
 import { WEBROOT } from "../helpers/env";
+import { localeFromRequest, t as i18n } from "../helpers/i18n";
 import { userService } from "./user";
 
 const archiveBuilds = new Map<string, Promise<void>>();
@@ -16,7 +17,7 @@ export const download = new Elysia()
   .use(userService)
   .get(
     "/download/:userId/:jobId/:fileName",
-    async ({ params, redirect, set, user }) => {
+    async ({ params, redirect, set, user, request }) => {
       const userId = user.id;
       const job = await db
         .query("SELECT * FROM jobs WHERE user_id = ? AND id = ?")
@@ -33,7 +34,9 @@ export const download = new Elysia()
       const file = Bun.file(filePath);
       if (!(await file.exists())) {
         set.status = 404;
-        return { message: "Converted file not found." };
+        return {
+          message: i18n("api.convertedFileNotFound", undefined, localeFromRequest(request)),
+        };
       }
 
       return file;

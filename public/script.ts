@@ -6,6 +6,8 @@ import { edenFetch } from "@elysiajs/eden";
 import type { App } from "../src";
 import { findPresetTarget } from "../src/helpers/findPresetTarget";
 
+import { clientT } from "./i18nClient";
+
 // ── State ──────────────────────────────────────────────────────────────────────
 let fileType: string | null = null;
 const fileNames: string[] = [];
@@ -98,7 +100,7 @@ function createFileRow(file: File): HTMLTableRowElement {
   const removeBtn = document.createElement("button");
   removeBtn.type = "button";
   removeBtn.className = "text-accent-500 hover:underline";
-  removeBtn.textContent = "Remove";
+  removeBtn.textContent = clientT("upload.remove");
   removeBtn.addEventListener("click", () => deleteRow(removeBtn));
   removeCell.appendChild(removeBtn);
 
@@ -261,7 +263,8 @@ fileInput.addEventListener("change", (e: Event) => {
 const setTitle = (): void => {
   const title = document.querySelector("h1");
   if (!title) return;
-  title.textContent = `Convert ${fileType ? `.${fileType}` : ""}`;
+  const ext = fileType ? `.${fileType}` : "";
+  title.textContent = clientT("conversion.titleWithExt", { ext });
 };
 
 // ── Row deletion ───────────────────────────────────────────────────────────────
@@ -300,7 +303,7 @@ const finishUpload = (): void => {
   if (formatSelected && fileNames.length > 0) {
     convertButton.disabled = false;
   }
-  convertButton.value = "Convert";
+  convertButton.value = clientT("conversion.start");
 };
 
 // A file that never reached the server must not be submitted for conversion.
@@ -318,7 +321,7 @@ const failUpload = (file: File): void => {
 
 const uploadFile = (file: File): void => {
   convertButton.disabled = true;
-  convertButton.value = "Uploading...";
+  convertButton.value = clientT("upload.uploading");
   pendingFiles += 1;
 
   const formData = new FormData();

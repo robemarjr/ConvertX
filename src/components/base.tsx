@@ -1,15 +1,18 @@
 import { version } from "../../package.json";
+import { clientCatalog, type Locale, t } from "../helpers/i18n";
 
 export const BaseHtml = ({
   children,
   title = "ConvertX",
   webroot = "",
+  locale = "en",
 }: {
   children: JSX.Element;
   title?: string;
   webroot?: string;
+  locale?: Locale;
 }) => (
-  <html lang="en">
+  <html lang={locale}>
     <head>
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -20,12 +23,15 @@ export const BaseHtml = ({
       <link rel="icon" type="image/png" sizes="32x32" href={`${webroot}/favicon-32x32.png`} />
       <link rel="icon" type="image/png" sizes="16x16" href={`${webroot}/favicon-16x16.png`} />
       <link rel="manifest" href={`${webroot}/site.webmanifest`} />
+      <script id="ui-i18n" type="application/json" safe>
+        {JSON.stringify(clientCatalog(locale))}
+      </script>
     </head>
     <body class={`flex min-h-screen w-full flex-col bg-neutral-900 text-neutral-200`}>
       {children}
       <footer class="w-full">
         <div class="p-4 text-center text-sm text-neutral-500">
-          <span>Powered by </span>
+          <span>{t("footer.poweredBy", undefined, locale)} </span>
           <a
             href="https://github.com/C4illin/ConvertX"
             class={`

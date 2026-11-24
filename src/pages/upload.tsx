@@ -3,12 +3,13 @@ import sanitize from "sanitize-filename";
 
 import db from "../db/db";
 import { WEBROOT } from "../helpers/env";
+import { localeFromRequest, t as i18n } from "../helpers/i18n";
 import { uploadsDir } from "../index";
 import { userService } from "./user";
 
 export const upload = new Elysia().use(userService).post(
   "/upload",
-  async ({ body, redirect, user, cookie: { jobId } }) => {
+  async ({ body, redirect, user, cookie: { jobId }, request }) => {
     if (!jobId?.value) {
       return redirect(`${WEBROOT}/`, 302);
     }
@@ -36,7 +37,7 @@ export const upload = new Elysia().use(userService).post(
     }
 
     return {
-      message: "Files uploaded successfully.",
+      message: i18n("api.uploadSuccess", undefined, localeFromRequest(request)),
     };
   },
   { body: t.Object({ file: t.Files() }), auth: true },

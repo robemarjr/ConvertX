@@ -11,6 +11,8 @@ import {
   selectionState,
 } from "../src/helpers/historySelection";
 
+import { clientT } from "./i18nClient";
+
 const webroot = document.querySelector<HTMLMetaElement>("meta[name='webroot']")?.content ?? "";
 const api = edenFetch<App>(webroot);
 
@@ -61,7 +63,7 @@ for (const checkbox of jobCheckboxes) {
 deleteButton?.addEventListener("click", async () => {
   const jobIds = jobCheckboxes.filter((cb) => cb.checked).map((cb) => cb.dataset.jobId ?? "");
   if (jobIds.length === 0) return;
-  if (!confirm(deleteConfirmMessage(jobIds.length))) return;
+  if (!confirm(deleteConfirmMessage(jobIds.length, clientT))) return;
 
   try {
     let deleted = 0;
@@ -82,13 +84,16 @@ deleteButton?.addEventListener("click", async () => {
       failed += res.data.failed ?? 0;
     }
     if (deleted === 0 && requestFailures > 0) {
-      throw new Error("All delete requests failed");
+      throw new Error(clientT("history.deleteFailed"));
     }
-    const { message, reload } = deleteResultMessage({ success: failed === 0, deleted, failed });
+    const { message, reload } = deleteResultMessage(
+      { success: failed === 0, deleted, failed },
+      clientT,
+    );
     alert(message);
     if (reload) window.location.reload();
   } catch (error) {
     console.error("Error deleting jobs:", error);
-    alert("An error occurred while deleting jobs. Please try again.");
+    alert(clientT("history.deleteError"));
   }
 });

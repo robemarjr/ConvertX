@@ -1,0 +1,7 @@
+# Exemplo: copie para compose.override.yaml e ajuste.
+services:
+  convertx:
+    environment:
+      - LANGUAGE=pt-BR
+      - UI_LANGUAGE=pt-BR
+      - MAX_CONVERT_PROCESS=2

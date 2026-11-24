@@ -18,6 +18,7 @@ import { download } from "./pages/download";
 import { healthcheck } from "./pages/healthcheck";
 import { history } from "./pages/history";
 import { listConverters } from "./pages/listConverters";
+import { locale } from "./pages/locale";
 import { results } from "./pages/results";
 import { root } from "./pages/root";
 import { upload } from "./pages/upload";
@@ -43,6 +44,7 @@ const app = new Elysia({
     }),
   )
   .use(user)
+  .use(locale)
   .use(root)
   .use(upload)
   .use(history)

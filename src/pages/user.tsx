@@ -12,6 +12,7 @@ import {
   HTTP_ALLOWED,
   WEBROOT,
 } from "../helpers/env";
+import { type Locale, localeFromRequest, t as i18n } from "../helpers/i18n";
 import { userService } from "../services/user";
 
 export { userService } from "../services/user";
@@ -29,9 +30,22 @@ function ErrorBanner({ message }: { message: string }) {
   );
 }
 
-function LoginPage({ error, email = "" }: { error?: string; email?: string }) {
+function LoginPage({
+  error,
+  email = "",
+  locale = "en",
+}: {
+  error?: string;
+  email?: string;
+  locale?: Locale;
+}) {
+  const tr = (key: string) => i18n(key, undefined, locale);
   return (
-    <BaseHtml webroot={WEBROOT} title="ConvertX | Login">
+    <BaseHtml
+      webroot={WEBROOT}
+      title={`${BRANDING} | ${tr("auth.pageLogin")}`}
+      locale={locale}
+    >
       <>
         <Header
           webroot={WEBROOT}
@@ -39,6 +53,7 @@ function LoginPage({ error, email = "" }: { error?: string; email?: string }) {
           accountRegistration={ACCOUNT_REGISTRATION}
           allowUnauthenticated={ALLOW_UNAUTHENTICATED}
           hideHistory={HIDE_HISTORY}
+          locale={locale}
         />
         <main
           class={`
@@ -51,12 +66,12 @@ function LoginPage({ error, email = "" }: { error?: string; email?: string }) {
               {error ? <ErrorBanner message={error} /> : null}
               <fieldset class="mb-4 flex flex-col gap-4">
                 <label class="flex flex-col gap-1">
-                  Email
+                  {tr("auth.email")}
                   <input
                     type="email"
                     name="email"
                     class="rounded-sm bg-neutral-800 p-3"
-                    placeholder="Email"
+                    placeholder={tr("auth.email")}
                     autocomplete="email"
                     value={email}
                     autofocus
@@ -64,12 +79,12 @@ function LoginPage({ error, email = "" }: { error?: string; email?: string }) {
                   />
                 </label>
                 <label class="flex flex-col gap-1">
-                  Password
+                  {tr("auth.password")}
                   <input
                     type="password"
                     name="password"
                     class="rounded-sm bg-neutral-800 p-3"
-                    placeholder="Password"
+                    placeholder={tr("auth.password")}
                     autocomplete="current-password"
                     required
                   />
@@ -82,10 +97,10 @@ function LoginPage({ error, email = "" }: { error?: string; email?: string }) {
                     role="button"
                     class="w-full btn-secondary text-center"
                   >
-                    Register
+                    {tr("auth.register")}
                   </a>
                 ) : null}
-                <input type="submit" value="Login" class="w-full btn-primary" />
+                <input type="submit" value={tr("auth.login")} class="w-full btn-primary" />
               </div>
             </form>
           </article>
@@ -95,9 +110,22 @@ function LoginPage({ error, email = "" }: { error?: string; email?: string }) {
   );
 }
 
-function AccountPage({ email, error }: { email: string; error?: string }) {
+function AccountPage({
+  email,
+  error,
+  locale = "en",
+}: {
+  email: string;
+  error?: string;
+  locale?: Locale;
+}) {
+  const tr = (key: string) => i18n(key, undefined, locale);
   return (
-    <BaseHtml webroot={WEBROOT} title="ConvertX | Account">
+    <BaseHtml
+      webroot={WEBROOT}
+      title={`${BRANDING} | ${tr("auth.pageAccount")}`}
+      locale={locale}
+    >
       <>
         <Header
           webroot={WEBROOT}
@@ -106,6 +134,7 @@ function AccountPage({ email, error }: { email: string; error?: string }) {
           allowUnauthenticated={ALLOW_UNAUTHENTICATED}
           hideHistory={HIDE_HISTORY}
           loggedIn
+          locale={locale}
         />
         <main
           class={`
@@ -118,41 +147,41 @@ function AccountPage({ email, error }: { email: string; error?: string }) {
               {error ? <ErrorBanner message={error} /> : null}
               <fieldset class="mb-4 flex flex-col gap-4">
                 <label class="flex flex-col gap-1">
-                  Email
+                  {tr("auth.email")}
                   <input
                     type="email"
                     name="email"
                     class="rounded-sm bg-neutral-800 p-3"
-                    placeholder="Email"
+                    placeholder={tr("auth.email")}
                     autocomplete="email"
                     value={email}
                     required
                   />
                 </label>
                 <label class="flex flex-col gap-1">
-                  Password (leave blank for unchanged)
+                  {tr("auth.passwordUnchanged")}
                   <input
                     type="password"
                     name="newPassword"
                     class="rounded-sm bg-neutral-800 p-3"
-                    placeholder="Password"
+                    placeholder={tr("auth.password")}
                     autocomplete="new-password"
                   />
                 </label>
                 <label class="flex flex-col gap-1">
-                  Current Password
+                  {tr("auth.currentPassword")}
                   <input
                     type="password"
                     name="password"
                     class="rounded-sm bg-neutral-800 p-3"
-                    placeholder="Password"
+                    placeholder={tr("auth.password")}
                     autocomplete="current-password"
                     required
                   />
                 </label>
               </fieldset>
               <div role="group">
-                <input type="submit" value="Update" class="w-full btn-primary" />
+                <input type="submit" value={tr("auth.update")} class="w-full btn-primary" />
               </div>
             </form>
           </article>
@@ -164,51 +193,58 @@ function AccountPage({ email, error }: { email: string; error?: string }) {
 
 export const user = new Elysia()
   .use(userService)
-  .get("/setup", ({ redirect }) => {
+  .get("/setup", ({ redirect, request }) => {
     if (!FIRST_RUN) {
       return redirect(`${WEBROOT}/login`, 302);
     }
 
+    const locale = localeFromRequest(request);
+    const tr = (key: string) => i18n(key, undefined, locale);
+
     return (
-      <BaseHtml title="ConvertX | Setup" webroot={WEBROOT}>
+      <BaseHtml
+        title={`${BRANDING} | ${tr("auth.pageSetup")}`}
+        webroot={WEBROOT}
+        locale={locale}
+      >
         <main
           class={`
             mx-auto w-full max-w-4xl flex-1 px-2
             sm:px-4
           `}
         >
-          <h1 class="my-8 text-3xl">Welcome to ConvertX!</h1>
+          <h1 class="my-8 text-3xl">{tr("auth.welcome")}</h1>
           <article class="article p-0">
-            <header class="w-full bg-neutral-800 p-4">Create your account</header>
+            <header class="w-full bg-neutral-800 p-4">{tr("auth.createYourAccount")}</header>
             <form method="post" action={`${WEBROOT}/register`} class="p-4">
               <fieldset class="mb-4 flex flex-col gap-4">
                 <label class="flex flex-col gap-1">
-                  Email
+                  {tr("auth.email")}
                   <input
                     type="email"
                     name="email"
                     class="rounded-sm bg-neutral-800 p-3"
-                    placeholder="Email"
+                    placeholder={tr("auth.email")}
                     autocomplete="email"
                     required
                   />
                 </label>
                 <label class="flex flex-col gap-1">
-                  Password
+                  {tr("auth.password")}
                   <input
                     type="password"
                     name="password"
                     class="rounded-sm bg-neutral-800 p-3"
-                    placeholder="Password"
+                    placeholder={tr("auth.password")}
                     autocomplete="current-password"
                     required
                   />
                 </label>
               </fieldset>
-              <input type="submit" value="Create account" class="btn-primary" />
+              <input type="submit" value={tr("auth.createAccount")} class="btn-primary" />
             </form>
             <footer class="p-4">
-              Report any issues on{" "}
+              {tr("auth.reportIssues")}{" "}
               <a
                 class={`
                   text-accent-500 underline
@@ -225,13 +261,20 @@ export const user = new Elysia()
       </BaseHtml>
     );
   })
-  .get("/register", ({ redirect }) => {
+  .get("/register", ({ redirect, request }) => {
     if (!ACCOUNT_REGISTRATION) {
       return redirect(`${WEBROOT}/login`, 302);
     }
 
+    const locale = localeFromRequest(request);
+    const tr = (key: string) => i18n(key, undefined, locale);
+
     return (
-      <BaseHtml webroot={WEBROOT} title="ConvertX | Register">
+      <BaseHtml
+        webroot={WEBROOT}
+        title={`${BRANDING} | ${tr("auth.pageRegister")}`}
+        locale={locale}
+      >
         <>
           <Header
             webroot={WEBROOT}
@@ -239,6 +282,7 @@ export const user = new Elysia()
             accountRegistration={ACCOUNT_REGISTRATION}
             allowUnauthenticated={ALLOW_UNAUTHENTICATED}
             hideHistory={HIDE_HISTORY}
+            locale={locale}
           />
           <main
             class={`
@@ -250,29 +294,29 @@ export const user = new Elysia()
               <form method="post" class="flex flex-col gap-4">
                 <fieldset class="mb-4 flex flex-col gap-4">
                   <label class="flex flex-col gap-1">
-                    Email
+                    {tr("auth.email")}
                     <input
                       type="email"
                       name="email"
                       class="rounded-sm bg-neutral-800 p-3"
-                      placeholder="Email"
+                      placeholder={tr("auth.email")}
                       autocomplete="email"
                       required
                     />
                   </label>
                   <label class="flex flex-col gap-1">
-                    Password
+                    {tr("auth.password")}
                     <input
                       type="password"
                       name="password"
                       class="rounded-sm bg-neutral-800 p-3"
-                      placeholder="Password"
+                      placeholder={tr("auth.password")}
                       autocomplete="current-password"
                       required
                     />
                   </label>
                 </fieldset>
-                <input type="submit" value="Register" class="w-full btn-primary" />
+                <input type="submit" value={tr("auth.register")} class="w-full btn-primary" />
               </form>
             </article>
           </main>
@@ -282,7 +326,8 @@ export const user = new Elysia()
   })
   .post(
     "/register",
-    async ({ body: { email, password }, set, redirect, jwt, cookie: { auth } }) => {
+    async ({ body: { email, password }, set, redirect, jwt, cookie: { auth }, request }) => {
+      const locale = localeFromRequest(request);
       if (!ACCOUNT_REGISTRATION && !FIRST_RUN) {
         return redirect(`${WEBROOT}/login`, 302);
       }
@@ -295,7 +340,7 @@ export const user = new Elysia()
       if (existingUser) {
         set.status = 400;
         return {
-          message: "Email already in use.",
+          message: i18n("auth.emailInUse", undefined, locale),
         };
       }
       const savedPassword = await Bun.password.hash(password);
@@ -307,7 +352,7 @@ export const user = new Elysia()
       if (!user) {
         set.status = 500;
         return {
-          message: "Failed to create user.",
+          message: i18n("api.userCreateFailed", undefined, locale),
         };
       }
 
@@ -318,7 +363,7 @@ export const user = new Elysia()
       if (!auth) {
         set.status = 500;
         return {
-          message: "No auth cookie, perhaps your browser is blocking cookies.",
+          message: i18n("api.cookiesBlocked", undefined, locale),
         };
       }
 
@@ -337,7 +382,7 @@ export const user = new Elysia()
   )
   .get(
     "/login",
-    async ({ jwt, redirect, cookie: { auth } }) => {
+    async ({ jwt, redirect, cookie: { auth }, request }) => {
       if (FIRST_RUN) {
         return redirect(`${WEBROOT}/setup`, 302);
       }
@@ -353,25 +398,38 @@ export const user = new Elysia()
         auth.remove();
       }
 
-      return <LoginPage />;
+      return <LoginPage locale={localeFromRequest(request)} />;
     },
     { body: "signIn", cookie: "optionalSession" },
   )
   .post(
     "/login",
-    async function handler({ body, set, redirect, jwt, cookie: { auth } }) {
+    async function handler({ body, set, redirect, jwt, cookie: { auth }, request }) {
+      const locale = localeFromRequest(request);
       const existingUser = db.query("SELECT * FROM users WHERE email = ?").as(User).get(body.email);
 
       if (!existingUser) {
         set.status = 403;
-        return <LoginPage error="Invalid credentials." email={body.email} />;
+        return (
+          <LoginPage
+            error={i18n("auth.invalidCredentials", undefined, locale)}
+            email={body.email}
+            locale={locale}
+          />
+        );
       }
 
       const validPassword = await Bun.password.verify(body.password, existingUser.password);
 
       if (!validPassword) {
         set.status = 403;
-        return <LoginPage error="Invalid credentials." email={body.email} />;
+        return (
+          <LoginPage
+            error={i18n("auth.invalidCredentials", undefined, locale)}
+            email={body.email}
+            locale={locale}
+          />
+        );
       }
 
       const accessToken = await jwt.sign({
@@ -381,7 +439,7 @@ export const user = new Elysia()
       if (!auth) {
         set.status = 500;
         return {
-          message: "No auth cookie, perhaps your browser is blocking cookies.",
+          message: i18n("api.cookiesBlocked", undefined, locale),
         };
       }
 
@@ -414,7 +472,7 @@ export const user = new Elysia()
   })
   .get(
     "/account",
-    async ({ user, redirect }) => {
+    async ({ user, redirect, request }) => {
       if (!user) {
         return redirect(`${WEBROOT}/`, 302);
       }
@@ -425,7 +483,7 @@ export const user = new Elysia()
         return redirect(`${WEBROOT}/`, 302);
       }
 
-      return <AccountPage email={userData.email} />;
+      return <AccountPage email={userData.email} locale={localeFromRequest(request)} />;
     },
     {
       auth: true,
@@ -433,7 +491,8 @@ export const user = new Elysia()
   )
   .post(
     "/account",
-    async function handler({ body, set, redirect, jwt, cookie: { auth } }) {
+    async function handler({ body, set, redirect, jwt, cookie: { auth }, request }) {
+      const locale = localeFromRequest(request);
       if (!auth?.value) {
         return redirect(`${WEBROOT}/login`, 302);
       }
@@ -456,7 +515,13 @@ export const user = new Elysia()
 
       if (!validPassword) {
         set.status = 403;
-        return <AccountPage email={emailValue} error="Invalid credentials." />;
+        return (
+          <AccountPage
+            email={emailValue}
+            error={i18n("auth.invalidCredentials", undefined, locale)}
+            locale={locale}
+          />
+        );
       }
 
       const fields = [];
@@ -469,7 +534,13 @@ export const user = new Elysia()
           .get(body.email);
         if (existingEmailUser && existingEmailUser.id.toString() !== user.id) {
           set.status = 409;
-          return <AccountPage email={emailValue} error="Email already in use." />;
+          return (
+            <AccountPage
+              email={emailValue}
+              error={i18n("auth.emailInUse", undefined, locale)}
+              locale={locale}
+            />
+          );
         }
         fields.push("email");
         values.push(body.email);
